@@ -25,16 +25,15 @@ Recreate the visual style/UI/UX of `https://skeleton-rebuild.preview.emergentage
   - `/app/frontend/public/media/hero.mp4` (3.8MB, H.264 High profile + faststart — Safari/iOS fallback)
 
 ## Implementation — what's been done (May 2026)
-- Hero scroll-scrubbed video with 5 cue overlays cross-fading at exact scroll bands (0–15/15–45/45–70/70–92/92–100%)
-- Full-screen sticky video inside a 420vh container; `requestAnimationFrame` throttled scroll handler updates `video.currentTime = progress * duration`
-- Mobile fallback: video autoplays muted+loop, cues sync via `timeupdate` event
-- Reduced-motion fallback: video pauses on final frame, all overlays revealed
+- **Hero v2 (current)**: single 100vh section with continuous autoplay+muted+loop video; the 5 cue overlays cycle automatically via `video.timeupdate` (not scroll-bound), CTA "Get the Method" always visible at bottom-left of hero. *Replaces* the v1 scroll-scrub hero which the user removed because it caused micro-freezes during scrolling.
+- Mobile / desktop / reduced-motion all share the same loop logic now (reduced-motion still pauses on the final frame)
 - 6 sections with editorial dark-luxury aesthetic — 4 stat counters, 3-step method grid, 5-item checklist, final CTA frame with copper glow
 - Fixed top nav with glass-blur scrolled state, smooth-scroll to anchors
 - Mailto-based final CTA → `hi@scarlletaurora.com`
 - Custom typography: Bricolage Grotesque (display) + Fraunces (italic accents) + Inter Tight (body) + JetBrains Mono (kicker labels)
 - Color palette: deep charcoal `#0B0A09`, copper `#C87941`, teal `#3ECFCF`, cream `#F5F0EB`
-- Testing agent: 22/22 PASS — page load, video scrub, all cue transitions, all sections, mobile responsive, dark theme
+- Testing agent iteration 1 (scroll-scrub hero): 22/22 PASS
+- Testing agent iteration 2 (loop hero regression): 24/24 PASS
 
 ## Backlog / Future Enhancements
 - P1: Lead capture form on final CTA (replace `mailto:` with email submission to a serverless endpoint or MongoDB-backed FastAPI) — would lift conversion rate vs `mailto:`
