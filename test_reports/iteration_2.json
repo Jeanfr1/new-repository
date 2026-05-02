@@ -1,0 +1,34 @@
+{
+  "summary": "Regression test after Hero refactor (scroll-scrub removed, video now loops with timeupdate-driven cues, CTA always visible). All 24/24 frontend assertions passed on desktop (1920x1080) and mobile (390x844).",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Hero (mobile 390x844)",
+        "issues": [
+          "During the 600ms cue cross-fade, two cue headlines can briefly visually overlap on small screens because .cue-active uses position:relative while the outgoing .cue-past keeps position:absolute. Functionally fine (only one cue is active at a time and CTA stays anchored), but a short stacking flicker is visible mid-transition. Consider tightening the transition timing on mobile or fading via a single shared positioned slot. NOT a regression — pre-existing transition behavior."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Hero useEffect correctly cleans up timeupdate listener on unmount; play() promise rejection is swallowed safely.",
+    "getCueIndex thresholds (0.15/0.45/0.7/0.92) are well distributed across the 5.04s loop — cue cycling validated empirically (samples observed cues 1,2,3,4,5).",
+    "reducedMotion branch sets activeCue=4 and pauses video (cue 5 'She's not real.' frozen). Confirmed not triggered in default tests.",
+    "Hero is now 100vh exactly (1080/1080 desktop, 844/844 mobile) — confirmed scroll past hero is natural (scrollY=200 after scrollTo(0,200)).",
+    "Hero CTA button extracted from cue 5 and confirmed always-visible across all 5 cues during 6+ seconds of observation.",
+    "No console errors detected on either viewport."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "n/a (skipped per request)", "frontend": "100% (24/24)" },
+  "test_credentials": "n/a",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Hero loop-mode regression confirmed green. All previous iteration_1 assertions still hold (sections, nav, stats=4, steps=3, who=5, final CTA mailto). Only minor cosmetic note is brief cue cross-fade overlap on mobile — not a regression and user explicitly approved the loop behavior. No further action needed.",
+  "rca of the issue": "n/a — no failing assertions"
+}

@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import { ArrowRight, ArrowUpRight, Check, Play } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowRight, ArrowUpRight, Check } from "lucide-react";
 import "./App.css";
 
 const HERO_VIDEO_WEBM = "/media/hero.webm";
@@ -79,78 +79,36 @@ function Nav({ scrolled }) {
 function Hero() {
   const videoRef = useRef(null);
   const heroRef = useRef(null);
-  const stickyRef = useRef(null);
   const [activeCue, setActiveCue] = useState(0);
   const [progress, setProgress] = useState(0);
-  const [mode, setMode] = useState("desktop");
-  const [videoReady, setVideoReady] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
 
-  // detect mode
+  // detect reduced motion only
   useEffect(() => {
-    const sm = window.matchMedia("(max-width: 820px)");
     const rm = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => {
-      if (rm.matches) setMode("reduced");
-      else if (sm.matches) setMode("mobile");
-      else setMode("desktop");
-    };
+    const update = () => setReducedMotion(rm.matches);
     update();
-    sm.addEventListener("change", update);
     rm.addEventListener("change", update);
-    return () => {
-      sm.removeEventListener("change", update);
-      rm.removeEventListener("change", update);
-    };
+    return () => rm.removeEventListener("change", update);
   }, []);
 
-  // desktop: scroll scrubs the video
+  // Autoplay loop on every device; cues cycle via video.timeupdate
   useEffect(() => {
-    if (mode !== "desktop") return;
-    const hero = heroRef.current;
-    const video = videoRef.current;
-    if (!hero || !video) return;
-
-    let raf = null;
-    const tick = () => {
-      const rect = hero.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const total = hero.offsetHeight - vh;
-      const scrolled = Math.min(Math.max(-rect.top, 0), total);
-      const p = total > 0 ? scrolled / total : 0;
-      setProgress(p);
-      setActiveCue(getCueIndex(p));
-      if (video.duration && Number.isFinite(video.duration)) {
-        const t = p * video.duration;
-        // Avoid useless writes
-        if (Math.abs(video.currentTime - t) > 0.01) {
-          try {
-            video.currentTime = t;
-          } catch (_) { /* ignore */ }
-        }
-      }
-      raf = null;
-    };
-
-    const onScroll = () => {
-      if (raf) return;
-      raf = requestAnimationFrame(tick);
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    tick();
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      if (raf) cancelAnimationFrame(raf);
-    };
-  }, [mode, videoReady]);
-
-  // mobile: autoplay loop, cues sync to video time
-  useEffect(() => {
-    if (mode !== "mobile") return;
     const video = videoRef.current;
     if (!video) return;
+
+    if (reducedMotion) {
+      video.pause();
+      const onMeta = () => {
+        try { video.currentTime = video.duration || 0; } catch (_) {}
+      };
+      if (video.readyState >= 1) onMeta();
+      else video.addEventListener("loadedmetadata", onMeta, { once: true });
+      setActiveCue(4);
+      setProgress(1);
+      return;
+    }
+
     video.muted = true;
     video.loop = true;
     video.playsInline = true;
@@ -165,44 +123,24 @@ function Hero() {
     };
     video.addEventListener("timeupdate", onTime);
     return () => video.removeEventListener("timeupdate", onTime);
-  }, [mode]);
-
-  // reduced motion: freeze on final frame
-  useEffect(() => {
-    if (mode !== "reduced") return;
-    const video = videoRef.current;
-    if (!video) return;
-    video.pause();
-    const onMeta = () => {
-      try { video.currentTime = video.duration || 0; } catch (_) {}
-    };
-    if (video.readyState >= 1) onMeta();
-    else video.addEventListener("loadedmetadata", onMeta, { once: true });
-    setActiveCue(4);
-    setProgress(1);
-  }, [mode]);
-
-  const onLoaded = useCallback(() => setVideoReady(true), []);
-
-  const heightStyle = mode === "desktop" ? { height: "420vh" } : { height: "100vh" };
+  }, [reducedMotion]);
 
   return (
     <section
       id="top"
-      className={`hero hero-${mode}`}
+      className="hero hero-loop"
       ref={heroRef}
-      style={heightStyle}
       data-testid="hero-section"
     >
-      <div className="hero-sticky" ref={stickyRef}>
+      <div className="hero-sticky">
         <video
           ref={videoRef}
           className="hero-video"
           muted
+          autoPlay
+          loop
           playsInline
           preload="auto"
-          onLoadedMetadata={onLoaded}
-          onCanPlay={onLoaded}
           data-testid="hero-video"
         >
           <source src={HERO_VIDEO_WEBM} type="video/webm" />
@@ -219,10 +157,10 @@ function Hero() {
         <div className="hero-overlay">
           <div className="hero-meta">
             <span className="meta-row">
-              <span className="dot" /> Live · scroll-driven hero
+              <span className="dot" /> Live · 5.04s loop
             </span>
             <span className="meta-row meta-end">
-              <span className="ai-badge">Ai</span> 5.04s · {Math.round(progress * 100)}%
+              <span className="ai-badge">Ai</span> Scarllet Aurora · v.01
             </span>
           </div>
 
@@ -244,16 +182,6 @@ function Hero() {
                   </div>
                   <h1 className="cue-headline">{c.headline}</h1>
                   <p className="cue-sub">{c.sub}</p>
-                  {c.cta && (
-                    <button
-                      className={`btn btn-primary cue-cta ${activeCue === 4 ? "show" : ""}`}
-                      onClick={() => smoothScrollTo("final-cta")}
-                      data-testid="hero-cta-btn"
-                    >
-                      <span>Get the Method</span>
-                      <ArrowRight size={18} />
-                    </button>
-                  )}
                 </div>
               );
             })}
@@ -261,24 +189,30 @@ function Hero() {
 
           <div className="hero-foot">
             <div className="hero-foot-left">
-              <span className="kicker">Currently rendering</span>
+              <button
+                className="btn btn-primary hero-cta"
+                onClick={() => smoothScrollTo("final-cta")}
+                data-testid="hero-cta-btn"
+              >
+                <span>Get the Method</span>
+                <ArrowRight size={18} />
+              </button>
               <span className="hero-tools">
-                {TOOLS.map((t, i) => (
+                {TOOLS.map((t) => (
                   <span key={t} className="tool-chip">
                     <span className="chip-dot" />
                     {t}
-                    {i < TOOLS.length - 1 ? "" : ""}
                   </span>
                 ))}
               </span>
             </div>
             <div className="hero-foot-right">
-              <span className="kicker">{mode === "desktop" ? "Scroll to play →" : "Auto-loop"}</span>
+              <span className="kicker">Scroll for the blueprint ↓</span>
             </div>
           </div>
         </div>
 
-        {/* progress rail */}
+        {/* cue rail (now non-scroll, syncs to video time) */}
         <div className="hero-rail" data-testid="hero-progress">
           <div className="rail-track">
             <div className="rail-fill" style={{ height: `${progress * 100}%` }} />
