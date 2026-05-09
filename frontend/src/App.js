@@ -36,6 +36,17 @@ function smoothScrollTo(id) {
   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
+function trackCTAClick(location) {
+  if (typeof window === "undefined" || !window.posthog) return;
+  try {
+    window.posthog.capture("cta_click", {
+      location,
+      destination: "https://stan.store/scarlletaurora",
+      path: window.location.pathname,
+    });
+  } catch (_) { /* swallow */ }
+}
+
 function getCueIndex(p) {
   if (p < 0.15) return 0;
   if (p < 0.45) return 1;
@@ -67,6 +78,7 @@ function Nav({ scrolled }) {
           href="https://stan.store/scarlletaurora"
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => trackCTAClick("nav")}
           data-testid="nav-cta-btn"
         >
           <span>Get Access</span>
@@ -196,6 +208,7 @@ function Hero() {
                 href="https://stan.store/scarlletaurora"
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackCTAClick("hero")}
                 data-testid="hero-cta-btn"
               >
                 <span>Get the Method</span>
@@ -475,6 +488,7 @@ function FinalCTA() {
             href="https://stan.store/scarlletaurora"
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackCTAClick("final")}
             data-testid="final-cta-btn"
           >
             <span>Get Access Now</span>
