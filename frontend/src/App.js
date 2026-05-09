@@ -62,14 +62,16 @@ function Nav({ scrolled }) {
           <a onClick={(e) => { e.preventDefault(); smoothScrollTo("solution"); }} href="#solution">Solution</a>
           <a onClick={(e) => { e.preventDefault(); smoothScrollTo("how"); }} href="#how">Method</a>
         </nav>
-        <button
+        <a
           className="btn btn-pill"
-          onClick={() => smoothScrollTo("final-cta")}
+          href="https://stan.store/scarlletaurora"
+          target="_blank"
+          rel="noopener noreferrer"
           data-testid="nav-cta-btn"
         >
           <span>Get Access</span>
           <ArrowUpRight size={14} />
-        </button>
+        </a>
       </div>
     </header>
   );
