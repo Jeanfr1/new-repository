@@ -189,14 +189,16 @@ function Hero() {
 
           <div className="hero-foot">
             <div className="hero-foot-left">
-              <button
+              <a
                 className="btn btn-primary hero-cta"
-                onClick={() => smoothScrollTo("final-cta")}
+                href="https://stan.store/scarlletaurora"
+                target="_blank"
+                rel="noopener noreferrer"
                 data-testid="hero-cta-btn"
               >
                 <span>Get the Method</span>
                 <ArrowRight size={18} />
-              </button>
+              </a>
               <span className="hero-tools">
                 {TOOLS.map((t) => (
                   <span key={t} className="tool-chip">
@@ -468,7 +470,9 @@ function FinalCTA() {
           <p className="final-sub">Get the exact system behind Scarllet Aurora.</p>
           <a
             className="btn btn-primary btn-large"
-            href="mailto:hi@scarlletaurora.com?subject=Get%20Access%20—%20Scarllet%20Aurora%20Blueprint"
+            href="https://stan.store/scarlletaurora"
+            target="_blank"
+            rel="noopener noreferrer"
             data-testid="final-cta-btn"
           >
             <span>Get Access Now</span>
